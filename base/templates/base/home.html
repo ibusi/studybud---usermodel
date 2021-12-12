@@ -1,0 +1,43 @@
+{%  extends 'main.html' %}
+
+{% block content %}
+
+<h1>Home Template</h1>
+
+<div>
+
+    <a href="{% url 'create-room' %}">Create Room</a>
+
+    <div>
+
+        <!-- roomsは｛% for room in rooms %｝から{% endfor%}までを表すclassみたいなもの
+        roomがinstanceみたいなもの。IDの数だけ回数繰り返す。
+        room.host.usernameやroom.idでいうとroomというclassがmodels.pyにあり、そのID（インスタンス）の数だけ繰り返される -->
+        {% for room in rooms %}
+            <div>
+
+                <a href="{% url 'update-room' room.id %}">Edit</a>
+
+                <!-- <span>とは、単体では特に意味を持たないタグだが、<span>～</span>で囲った部分をインライン要素として
+                グループ化することができる。グループ化することで、指定した範囲にスタイルシートを適用したりすることができる。
+                同じ意味を持つタグとして<div>があるが、<div>はブロックレベル要素としてグループ化を行うので、
+                見出しや段落、リストなどとしてみなされ前後に改行が入る。<span>はインライン要素で文章の一部として利用され
+                前後に改行は入らない。 -->
+                <span>@{{room.host.username}}</span>
+                
+                <!-- 変数は{}を二つ使ってかこう -->
+                <!-- url 'room'はurl.pyのpathのname='room'からきている -->
+                <!-- room.idもurlを表す。つまりroom/room.idというurlを示している -->
+                <h5>{{room.id}} -- <a href="{% url 'room' room.id %}">{{room.name}}</a></h5>
+
+                <!-- SMALLとは、テキストを一回り小さくするためのタグ。 -->
+                <small>{{room.topic.name}}</small>
+
+                <!-- hrとは「horizontal rule（水平方向の罫線）」の略で、水平の横線を引くためのタグ -->
+                <hr>
+            </div>
+        {% endfor%}
+    </div>
+</div>
+
+{% endblock content%}

@@ -1,0 +1,29 @@
+<!-- <htmからboiler templateを使うのが良い　-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>StudyBud</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    <script src='main.js'></script>
+</head>
+<body>
+
+    <!-- テンプレートをロードし、現在のコンテキストを使って出力する。
+    これはテンプレート内に他のテンプレートを取り込む（ “include” ）方法の一つ -->
+    {% include 'navbar.html' %}
+
+　  <!-- block を定義することで子テンプレートにオーバーライドさせることができる
+     ここで重要なのはextends タグ。このタグが、このテンプレートが他のテンプレートを "拡張" することを
+     テンプレートエンジンに伝える。テンプレートシステムがこの点プレートを評価する際に、
+     最初に親テンプレートを探しに行く。今回はhome.html やroom.html がextendsしている -->
+    {% block content %}
+
+
+    {% endblock %}
+
+</body>
+</html>
