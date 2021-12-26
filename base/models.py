@@ -15,6 +15,7 @@ class Topic(models.Model):
 #migrateをすることで、データベース構成を変更したり、その変更を取り消したりすることが出来るが、
 #データベース構成のバージョン管理をするのに、makemigrationsでマイグレーションファイルを作成する。
 
+#modles.Modelについて。Pythonではクラスの宣言において()中に継承するクラスを指定する。つまりmodles.Modelの子ということ
 #一つのインスタンスに対してデフォルトでidが作成される。1からインスタンスごとに増える。
 class Room(models.Model):
 
@@ -35,16 +36,26 @@ class Room(models.Model):
     #それぞれ、blank=Trueとnull=Trueのときに、対象が空であることを許容することになる。
     description = models.TextField(null=True, blank=True)
 
-    # participants =
+    #ManyToManyFieldとは多対多の参照をする時に必要になる
+    #親クラスにUserを指定しroomが子になる
+    #
+    participants = models.ManyToManyField(User, related_name='participants')
     #auto_now インスタンスがアップデート（セーブ）される度にスナップショット(DataTimeField)が自動で取られる
     updated = models.DateTimeField(auto_now=True)
 
     #aouto_now_addは一番最初にインスタンスが作られた時の情報のみ保存
     created = models.DateTimeField(auto_now_add=True)
 
+    #メタデータとは主となるデータの説明書きが書いてあるデータのこと
+    
+    #モデルのメタデータをMetaという名前のクラスでモデルの中に作る。
+    #モデルのメタデータとは、「フィールド定義じゃない何か」で、並べる時の順番指定(ordering)や、
+    #DBのテーブル名や(db_table)、表示名の単数形と複数形(verbose_name と verbose_name_plural)などを指定する。
+    #Metaは必須ではないので、必要になったら書く。
     class Meta:
         #ordering属性はオブジェクトのデフォルトの並び方を変更するときに使う。
         #‐で新しいのが先に来る。‐なしだと新しいのが一番後に来る
+        #-updatedと-created二つ指定しているが別に一つでも良い。たとえば-idでも」表示は一緒
         ordering =['-updated', '-created']
 
     #__something__はコンストラクター（インスタンス作成時に自動で実行される）を意味する。

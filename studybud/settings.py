@@ -28,17 +28,43 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
-# Application definition
+#INSTALLED_APPSは環境変数。
+#これはDjangoインスタンスの中で有効化されているすべてのDjangoアプリケーションの名前を保持するリストの環境変数。
+#django-admin startproject で作成されたDjangoアプリケーションの INSTALLED_APPS はデフォルトで
+#django.contrib~等いくつかアプリケーションを保持しています。
 
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+
+    #Cookie（クッキー）とは、Webサーバーがクライアントコンピュータに預けておく小さなファイルのこと。
+    #クライアントコンピュータが、あるWebサーバーに初めて接続した際に、Webサーバーがクライアントコンピュータの中に、
+    #そのWebサーバー専用のCookieファイルを作成する。
+    #そして、次回、クライアントコンピュータがWebサーバーに接続したときには、WebブラウザがそのCookieをWebサーバーに
+    #送信する。このような仕組みによって、Webサーバーは、個々のクライアントコンピュータが前回使用していた情報を読み取ること
+    #ができるようになる。Cookieには、Webサーバーによってどのような情報でも格納できるが、多くの場合は、
+    #ユーザー名などの接続情報、ショッピングサイトなどで購入する商品を一時的に保管する
+    # “買い物かご”の情報、氏名や住所、電話番号などの一度登録した会員情報といった管理に利用される。
+
+    #sessionとは、通信の始まりから終わりまでを一つの単位としたまとまり。
+    #Djangoではsessionフレームワークを使うことで、データをサイト訪問者単位で扱うことが出来るようになる。
+    #sessionでは主にログインページなどでログインしているかどうかなどを管理する。
+    #あくまでも、一つの通信に対して使われるのではなくてログインからログアウトまでを1つのsessionとして扱う。
+    #Djangoのデフォルト設定では、セッションはwebサーバーに保存されるようになっている。
+    #セッションはデータベースに保存するがユーザーを識別するsessionidというものがありログインした際に作成され
+    #Cookieはsessionidを記録する
+    #sessionはWEBページを閉じるまで保存をするのでその都度sessionidは違う
+
+    #adminページからユーザーがログインする際にcsrfトークンが作られる
+    #chromeのf12→application→Cookiesでログインした時のトークンの発行やsessionidが確認できる
+    #ログイン後も他のアドミンのページ内を移動するときは都度チェックする
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     #python manage.py startapp baseでbaseフォルダーを作ったのでその中の
-    #base/apps.pyのclass BaseConfigとを紐づける
+    #base/apps.pyのclass BaseConfigとを紐づけbaseフォルダーおよび以下のアプリやモデルを有効かする
     'base.apps.BaseConfig',
 ]
 

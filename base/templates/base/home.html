@@ -2,41 +2,88 @@
 
 {% block content %}
 
-<h1>Home Template</h1>
+<style>
+    .home-container{
+        display: grid;
+        grid-template-columns: 1fr 3fr;
+    }
+</style>
 
-<div>
-
-    <a href="{% url 'create-room' %}">Create Room</a>
+<div class ="home-container">
 
     <div>
+        <hr3>Browse Topics</hr3>
+        <hr>
 
-        <!-- roomsは｛% for room in rooms %｝から{% endfor%}までを表すclassみたいなもの
-        roomがinstanceみたいなもの。IDの数だけ回数繰り返す。
-        room.host.usernameやroom.idでいうとroomというclassがmodels.pyにあり、そのID（インスタンス）の数だけ繰り返される -->
-        {% for room in rooms %}
-            <div>
+        <div>
+            <a href ="{% url 'home' %}">ALL</a>
+        </div>
 
-                <a href="{% url 'update-room' room.id %}">Edit</a>
+        {% for topic in topics%}
+        <div>
 
-                <!-- <span>とは、単体では特に意味を持たないタグだが、<span>～</span>で囲った部分をインライン要素として
-                グループ化することができる。グループ化することで、指定した範囲にスタイルシートを適用したりすることができる。
-                同じ意味を持つタグとして<div>があるが、<div>はブロックレベル要素としてグループ化を行うので、
-                見出しや段落、リストなどとしてみなされ前後に改行が入る。<span>はインライン要素で文章の一部として利用され
-                前後に改行は入らない。 -->
-                <span>@{{room.host.username}}</span>
-                
-                <!-- 変数は{}を二つ使ってかこう -->
-                <!-- url 'room'はurl.pyのpathのname='room'からきている -->
-                <!-- room.idもurlを表す。つまりroom/room.idというurlを示している -->
-                <h5>{{room.id}} -- <a href="{% url 'room' room.id %}">{{room.name}}</a></h5>
+            <!--クエリ文字列（URLパラメーター）とは、サーバーに情報を送るためにURLの末尾につけ足す文字列（変数）のこと。
+            ?をURLの末尾につけ、その次に「パラメーター＝値」をつけ、複数のパラメーターをつけたい場合は「&」を使用する。
+            この形式で、サーバーに送信したいデータをURLにつけ加えることが可能。
+            例えば、基本のURLが「https:// ○△×□.jp/」だとして、基本のURLにクエリ文字列（URLパラメーター）を加えると
+            「https:// ○△×□.jp/?●=▲×■&○=△×□」となる。
+            クエリ文字列（URLパラメーター）には「パッシブパラメーター」、「アクティブパラメーター」の2種類がある。
+            パッシブパラメーターは、表示されるコンテンツに影響はない。パラメーターがついていてもついていなくても、
+            表示されるページは同じ。なぜするのかはWebサイトのアクセス解析をするため。
+            ユーザーがどこから自分のWebサイトへたどり着いたのかを知るために、固有のパラメーターをつけて計測する。 
+            アクティブパラメーターは、パッシブパラメーターと異なり、表示されるコンテンツに影響する。
+            つまり、パラメーターをつけ加えて、Webサイトの表示内容を変更する。
+            例えばショッピングサイトの場合、アクティブパラメーターを使用することにより、商品一覧をサイズごとに
+            フィルタリングしたり、価格順に並べ替えたりすることができる。
+            例えば、Tシャツの商品一覧ページを、Sサイズだけフィルタリングできるように仮定する。
+            基本のTシャツの商品一覧ページは、「http://○△×□.jp/category/tshirt/ 」
+            SサイズをフィルタリングしたTシャツの商品一覧ページは、「http://○△×□.jp/category/tshirt/?t=shirt_size=S」
+            ただし、上記の場合「http://○△×□.jp/category/tshirt/」という同じURLが2つできることになる。
+            同じURLが2つあるとSEOに悪影響を与えてしまう可能性があるでので専用のURLパラメーターツールを利用して、
+            メインのページとなるURLを設定しておくことがおすすめ。
+            今回のでいうと以下をクリックしようが同じホームのページに行くがURLが違う-->
+            <a href="{% url 'home' %}?q={{topic.name}}">{{topic.name}}</a>
+        </div>
+        {% endfor %}
+    </div>
 
-                <!-- SMALLとは、テキストを一回り小さくするためのタグ。 -->
-                <small>{{room.topic.name}}</small>
+    <div>
+        <h5>{{room_count}} rooms available</h5>
+        <a href="{% url 'create-room' %}">Create Room</a>
 
-                <!-- hrとは「horizontal rule（水平方向の罫線）」の略で、水平の横線を引くためのタグ -->
-                <hr>
-            </div>
-        {% endfor%}
+        <div>
+            <!-- roomsはfor room in roomsからendforまでを表すclassみたいなもの
+            roomがinstanceみたいなもの。IDの数だけ回数繰り返す。
+            room.host.usernameやroom.idでいうとroomというclassがmodels.pyにあり、そのID（インスタンス）の数だけ繰り返される -->
+            {% for room in rooms %}
+                <div>
+
+                     <!--  アップデートとデリートをルーム作成者のみできるように（他のユーザーの場合画面に表示させない）-->
+                    {% if request.user == room.host %}
+                    <a href="{% url 'update-room' room.id %}">Edit</a>
+                    <a href="{% url 'delete-room' room.id %}">Delete</a>
+                    {% endif %}
+
+                    <!-- <span>とは、単体では特に意味を持たないタグだが、<span>～</span>で囲った部分をインライン要素として
+                    グループ化することができる。グループ化することで、指定した範囲にスタイルシートを適用したりすることができる。
+                    同じ意味を持つタグとして<div>があるが、<div>はブロックレベル要素としてグループ化を行うので、
+                    見出しや段落、リストなどとしてみなされ前後に改行が入る。<span>はインライン要素で文章の一部として利用され
+                    前後に改行は入らない。 -->
+                    <span>@{{room.host.username}}</span>
+                    
+                    <!-- 変数は{}を二つ使ってかこう -->
+                    <!-- url 'room'はurl.pyのpathのname='room'からきている -->
+                    <!-- room.idもurlを表す。つまりroom/room.idというurlを示している -->
+                    <h5>{{room.id}} -- <a href="{% url 'room' room.id %}">{{room.name}}</a></h5>
+
+                    <!-- SMALLとは、テキストを一回り小さくするためのタグ。 -->
+                    <small>{{room.topic.name}}</small>
+
+                    <!-- hrとは「horizontal rule（水平方向の罫線）」の略で、水平の横線を引くためのタグ -->
+                    <hr>
+                </div>
+            {% endfor%}
+        </div>
     </div>
 </div>
 
