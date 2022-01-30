@@ -1,7 +1,26 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+# from django.contrib.auth.models import User
 
 # Create your models here.
+
+
+# AbstractUserはユーザーをカスタムするためのもの
+# usernameとしてemailを利用したい時には、AbstractUserはusernameフィールドを消してemailをメインに扱うモデルを作成できる。
+class User(AbstractUser):
+    name = models.CharField(max_length=200, null=True)
+    email = models.EmailField(unique=True, null=True)
+    bio = models.TextField(null=True)
+
+    # 以下を使うにはpython -m pip install pillowのインストールが必要
+    avatar = models.ImageField(null=True, default="avatar.svg")
+
+    USERNAME_FIELD = 'email'
+
+    # python manage.py createsuperuser すると、ユーザー名、メールアドレス、パスワードを聞かれる。
+    # これらの3つのフィールド以外にも値を指定できるように実装して、管理者ユーザーを作ることができる。
+    # やり方としては REQUIRED_FIELDS にフィールド名を追加するだけ。
+    REQUIRED_FIELDS = []
 
 
 class Topic(models.Model):
@@ -20,9 +39,10 @@ class Topic(models.Model):
 class Room(models.Model):
 
     #この親Userはimportした分
+    #ForeignKeyで何か参照するときはon_delete=の引数が必ず必要
     host = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
-    # もしclass Topicが class Roomよりも下に定義されていたら'Topic'の様に''で囲む
+    #もしclass Topicが class Roomよりも下に定義されていたら'Topic'の様に''で囲む
     #SET_NULLは親が消えても子が残る
     topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True)
     name = models.CharField(max_length=200)
@@ -38,7 +58,11 @@ class Room(models.Model):
 
     #ManyToManyFieldとは多対多の参照をする時に必要になる
     #親クラスにUserを指定しroomが子になる
-    #
+    #roomは複数のUser（participants）を指定でき逆にUserテーブルのユーザーは複数のroomに参加できる
+
+    #hostもUserの子になっているので、オブジェクト.クラス名_setとすることで逆参照（親から子）しようとしても
+    #User→hostなのかUser→participantsのどちらかがわからずでエラーになるそこでrelated_name='participants'を
+    #作成し逆参照する際のクラス名を指定した名前にすることで参照が可能になる
     participants = models.ManyToManyField(User, related_name='participants')
     #auto_now インスタンスがアップデート（セーブ）される度にスナップショット(DataTimeField)が自動で取られる
     updated = models.DateTimeField(auto_now=True)
@@ -59,6 +83,9 @@ class Room(models.Model):
         ordering =['-updated', '-created']
 
     #__something__はコンストラクター（インスタンス作成時に自動で実行される）を意味する。
+    #def __str__(self)により、管理画面に表示されるモデル内のデータ（レコード）を判別するための
+    #名前（文字列）を定義することができる。
+    #def __str__(self)がない場合、管理画面の表示から、データを判別することができないため、管理が難しくなる
     def __str__(self):
         return self.name
 
@@ -73,6 +100,9 @@ class Message(models.Model):
     body = models.TextField()
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering =['-updated', '-created']
 
     def __str__(self):
         return self.body[0:50]

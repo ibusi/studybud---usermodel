@@ -1,90 +1,83 @@
-{%  extends 'main.html' %}
+{% extends 'main.html' %}
+
 
 {% block content %}
+    <main class="layout layout--3">
+      <div class="container">
+        <!-- Topics Start -->
+        {% include 'base/topic_component.html' %}
+        
+        <!-- Topics End -->
 
-<style>
-    .home-container{
-        display: grid;
-        grid-template-columns: 1fr 3fr;
-    }
-</style>
+        <!-- Room List Start -->
+        <div class="roomList">
 
-<div class ="home-container">
 
-    <div>
-        <hr3>Browse Topics</hr3>
-        <hr>
+          <!-- style.cssに以下の記述があり画面サイズが500pxからはこれを読み込む事を表す
+            @media screen and (min-width: 500px) {
+                .mobile-menu {
+                  display: none;
+                }
+              }
+            これをclass="mobile-menu"に当てている
+            
+            レスポンシブデザインとは、
+            訪問ユーザーの各種デバイスに合わせた見やすいページを表示させるもので、基本はデバイスの幅を元に読み込む
+            cssを切り替えることによってユーザビリティや利便性を向上させるデザイン設計
+            メディアクエリとは、
+            Webページのスタイル（見栄え）を記述するCSSの仕様の一つで、表示された画面環境に応じて適用するスタイルを切り替える機能。
+            一つのページで複数の異なる表示環境に対応するレスポンシブWebデザインを実現することができる。
+            メディアタイプとは、
+            メディアクエリのメディア属性に記述するもので、どのメディアにcssを適応させるのかを指定する。
+            今回の(style.css)でいえばscreenになりscreenはモニターやディスプレイを指定している
+            メディア特性とは、
+            画面サイズやデバイスの機能、環境などの特性を指定し今回のでいえばmin-width: 500pxの部分
 
-        <div>
-            <a href ="{% url 'home' %}">ALL</a>
+            これによりスマホ画面やPC画面でも500p以下の大きさになったときはclass="mobile-menu"内の記述しか表示されない
+            -->
+          <div class="mobile-menu">
+            <form action="{% url 'home' %}" method= "GET" class="header__search">
+              <label>
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+                  <title>search</title>
+                  <path
+                    d="M32 30.586l-10.845-10.845c1.771-2.092 2.845-4.791 2.845-7.741 0-6.617-5.383-12-12-12s-12 5.383-12 12c0 6.617 5.383 12 12 12 2.949 0 5.649-1.074 7.741-2.845l10.845 10.845 1.414-1.414zM12 22c-5.514 0-10-4.486-10-10s4.486-10 10-10c5.514 0 10 4.486 10 10s-4.486 10-10 10z"
+                  ></path>
+                </svg>
+                <input name="q" placeholder="Search for posts" />
+              </label>
+            </form>
+            <div class="mobile-menuItems">
+              <a class="btn btn--main btn--pill" href="{% url 'topics' %}">Browse Topics</a>
+              <a class="btn btn--main btn--pill" href="{% url 'activity' %}">Recent Activities</a>
+            </div>
+          </div>
+          <div class="roomList__header">
+            <div>
+              <h2>Study Room</h2>
+              <p>{{room_count}} Rooms available</p>
+            </div>
+
+            <a class="btn btn--main" href="{% url 'create-room' %}">
+              <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+                <title>add</title>
+                <path
+                  d="M16.943 0.943h-1.885v14.115h-14.115v1.885h14.115v14.115h1.885v-14.115h14.115v-1.885h-14.115v-14.115z"
+                ></path>
+              </svg>
+              Create Room
+            </a>
+          </div>
+          
+          {% include 'base/feed_component.html' %}
+
         </div>
+        <!-- Room List End -->
 
-        {% for topic in topics%}
-        <div>
-
-            <!--クエリ文字列（URLパラメーター）とは、サーバーに情報を送るためにURLの末尾につけ足す文字列（変数）のこと。
-            ?をURLの末尾につけ、その次に「パラメーター＝値」をつけ、複数のパラメーターをつけたい場合は「&」を使用する。
-            この形式で、サーバーに送信したいデータをURLにつけ加えることが可能。
-            例えば、基本のURLが「https:// ○△×□.jp/」だとして、基本のURLにクエリ文字列（URLパラメーター）を加えると
-            「https:// ○△×□.jp/?●=▲×■&○=△×□」となる。
-            クエリ文字列（URLパラメーター）には「パッシブパラメーター」、「アクティブパラメーター」の2種類がある。
-            パッシブパラメーターは、表示されるコンテンツに影響はない。パラメーターがついていてもついていなくても、
-            表示されるページは同じ。なぜするのかはWebサイトのアクセス解析をするため。
-            ユーザーがどこから自分のWebサイトへたどり着いたのかを知るために、固有のパラメーターをつけて計測する。 
-            アクティブパラメーターは、パッシブパラメーターと異なり、表示されるコンテンツに影響する。
-            つまり、パラメーターをつけ加えて、Webサイトの表示内容を変更する。
-            例えばショッピングサイトの場合、アクティブパラメーターを使用することにより、商品一覧をサイズごとに
-            フィルタリングしたり、価格順に並べ替えたりすることができる。
-            例えば、Tシャツの商品一覧ページを、Sサイズだけフィルタリングできるように仮定する。
-            基本のTシャツの商品一覧ページは、「http://○△×□.jp/category/tshirt/ 」
-            SサイズをフィルタリングしたTシャツの商品一覧ページは、「http://○△×□.jp/category/tshirt/?t=shirt_size=S」
-            ただし、上記の場合「http://○△×□.jp/category/tshirt/」という同じURLが2つできることになる。
-            同じURLが2つあるとSEOに悪影響を与えてしまう可能性があるでので専用のURLパラメーターツールを利用して、
-            メインのページとなるURLを設定しておくことがおすすめ。
-            今回のでいうと以下をクリックしようが同じホームのページに行くがURLが違う-->
-            <a href="{% url 'home' %}?q={{topic.name}}">{{topic.name}}</a>
-        </div>
-        {% endfor %}
-    </div>
-
-    <div>
-        <h5>{{room_count}} rooms available</h5>
-        <a href="{% url 'create-room' %}">Create Room</a>
-
-        <div>
-            <!-- roomsはfor room in roomsからendforまでを表すclassみたいなもの
-            roomがinstanceみたいなもの。IDの数だけ回数繰り返す。
-            room.host.usernameやroom.idでいうとroomというclassがmodels.pyにあり、そのID（インスタンス）の数だけ繰り返される -->
-            {% for room in rooms %}
-                <div>
-
-                     <!--  アップデートとデリートをルーム作成者のみできるように（他のユーザーの場合画面に表示させない）-->
-                    {% if request.user == room.host %}
-                    <a href="{% url 'update-room' room.id %}">Edit</a>
-                    <a href="{% url 'delete-room' room.id %}">Delete</a>
-                    {% endif %}
-
-                    <!-- <span>とは、単体では特に意味を持たないタグだが、<span>～</span>で囲った部分をインライン要素として
-                    グループ化することができる。グループ化することで、指定した範囲にスタイルシートを適用したりすることができる。
-                    同じ意味を持つタグとして<div>があるが、<div>はブロックレベル要素としてグループ化を行うので、
-                    見出しや段落、リストなどとしてみなされ前後に改行が入る。<span>はインライン要素で文章の一部として利用され
-                    前後に改行は入らない。 -->
-                    <span>@{{room.host.username}}</span>
-                    
-                    <!-- 変数は{}を二つ使ってかこう -->
-                    <!-- url 'room'はurl.pyのpathのname='room'からきている -->
-                    <!-- room.idもurlを表す。つまりroom/room.idというurlを示している -->
-                    <h5>{{room.id}} -- <a href="{% url 'room' room.id %}">{{room.name}}</a></h5>
-
-                    <!-- SMALLとは、テキストを一回り小さくするためのタグ。 -->
-                    <small>{{room.topic.name}}</small>
-
-                    <!-- hrとは「horizontal rule（水平方向の罫線）」の略で、水平の横線を引くためのタグ -->
-                    <hr>
-                </div>
-            {% endfor%}
-        </div>
-    </div>
-</div>
-
-{% endblock content%}
+        <!-- Activities Start -->
+        {% include 'base/activity_component.html' %}
+        
+        <!-- Activities End -->
+      </div>
+    </main>
+{% endblock %}

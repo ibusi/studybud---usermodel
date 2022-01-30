@@ -1,0 +1,65 @@
+{% extends 'main.html' %}
+
+{% block content %}
+    <main class="update-account layout">
+        <div class="container">
+            <div class="layout__box">
+                <div class="layout__boxHeader">
+                    <div class="layout__boxTitle">
+                        <a href="{% url 'home' %}">
+                            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
+                                viewBox="0 0 32 32">
+                                <title>arrow-left</title>
+                                <path
+                                    d="M13.723 2.286l-13.723 13.714 13.719 13.714 1.616-1.611-10.96-10.96h27.625v-2.286h-27.625l10.965-10.965-1.616-1.607z">
+                                </path>
+                            </svg>
+                        </a>
+                        <h3>Edit your profile</h3>
+                    </div>
+                </div>
+                <div class="layout__body">
+
+                    <!-- enctype
+                        送信時のMIMEタイプを指定することができる。
+                        この属性を使用する場合は、method属性にpostを指定しておく必要がある。
+                    
+                        MIMEタイプ
+                        ファイルの種類を表す情報
+                        メールやホームページのファイルにくっつけて送られる「普通のテキストですよ」や「画像です」などの情報
+                        MIMEタイプの形式は
+                        ファイルの分類/ファイルの種類
+                        例えば「text/plain」というタイプだと、「text」に分類される「plain」なファイルを意味する。
+                        「text/html」というタイプだと。これは「text」に分類される「html」なファイルを意味している。
+
+                        multipart/form-data
+                        フォームにファイルを送信する機能がある場合に指定する。-->
+                    <form class="form" action="#" method="POST" enctype="multipart/form-data">
+                      {% csrf_token %}
+
+                      {% for field in form %}
+                        <div class="form__group">
+                            
+                            <!-- Field.label 
+                              The label argument lets you specify the “human-friendly” label for this field. 
+                              This is used when the Field is displayed in a Form.
+                              Outputting forms as HTML, the default label for a Field is generated from 
+                              the field name by converting all underscores to spaces and upper-casing the 
+                              first letter. Specify label if that default behavior doesn’t result 
+                              in an adequate label. -->
+                            <label for="profile_pic">{{field.label}}</label>
+                            {{field}}
+                        </div>
+                        {% endfor %}
+              
+                        <div class="form__action">
+                            <a class="btn btn--dark" href="index.html">Cancel</a>
+                            <button class="btn btn--main" type="submit">Update</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+      </div>
+    </main>
+{% endblock content %}

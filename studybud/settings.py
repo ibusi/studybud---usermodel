@@ -66,10 +66,29 @@ INSTALLED_APPS = [
     #python manage.py startapp baseでbaseフォルダーを作ったのでその中の
     #base/apps.pyのclass BaseConfigとを紐づけbaseフォルダーおよび以下のアプリやモデルを有効かする
     'base.apps.BaseConfig',
+
+    #restframeworkをインストールした後はここに記述する必要がある
+    'rest_framework',
+
+    'corsheaders',
 ]
 
+# Djangoには標準で備わっている強力なUserモデルが存在し、viewなどからはdjango.contrib.auth.modelsのUserを参照することで
+# 利用することができる。しかし、※Djangoの公式ドキュメントでも言及されている通り、自分のプロジェクトのなかでこのデフォルト
+# のUserモデルをそのまま利用するのは避けるべき。その場合、独自に定義したカスタムユーザーを作成することになるが、
+# その場合のUserモデルへの参照方法の一つがAUTH_USER_MODELを参照すること
+
+AUTH_USER_MODEL = 'base.User'
+
+# Djangoの文脈でMiddlewareとは
+# リクエストが送られた時に行う処理
+# レスポンスを返す前に行う処理
+# などを定義することができるもの
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+
+    "corsheaders.middleware.CorsMiddleware",
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -78,6 +97,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+#一番最初に参照するURLのフォルダーを指定する
 ROOT_URLCONF = 'studybud.urls'
 
 TEMPLATES = [
@@ -153,7 +173,20 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# URL that handles the media served from MEDIA_ROOT
+MEDIA_URL = '/images/'
+
+#これによりstaticファイルが存在することを知らせる事ができる
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
+
+# フォームでデータが登録された時に、ピクチャがどこにアップロードされるかを指定する
+MEDIA_ROOT = BASE_DIR / 'static/images'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CORS_ALLOW_ALL_ORIGINS = True

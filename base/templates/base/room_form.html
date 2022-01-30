@@ -1,35 +1,101 @@
 {% extends 'main.html' %}
 
+
 {% block content %}
+  <main class="create-room layout">
+    <div class="container">
+      <div class="layout__box">
+        <div class="layout__boxHeader">
+          <div class="layout__boxTitle">
+            <a href="{% url 'home' %}">
+              <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+                <title>arrow-left</title>
+                <path
+                  d="M13.723 2.286l-13.723 13.714 13.719 13.714 1.616-1.611-10.96-10.96h27.625v-2.286h-27.625l10.965-10.965-1.616-1.607z">
+                </path>
+              </svg>
+            </a>
+            <h3>Create/Update Study Room</h3>
+          </div>
+        </div>
+        <div class="layout__body">
+          <form class="form" action="" method="POST">
+            {% csrf_token %}
+            
+            <div class="form__group">
 
-<div>
-    <!-- <form>とは、入力・送信フォームを作成する際に使用する要素 
-    タグがひとつのフォームとなり、フォームの中に<input>タグ、<select>タグ、<textarea>タグなどのフォーム部品を配置して
-    フォームを作る。入力された値はmethod属性で指定した転送方法とenctype属性で指定したデータ形式でサーバへ送信され、
-    action属性で指定したアクションを呼び出す。アクションにはプログラムのURLなどを指定する。-->
-    <form method="POST" action="">
-        <!-- CSRF（Cross-Site Request Forgeries）とは　ウェブサイトの中には、サービスの提供に際しログイン機能を設けている
-        ものがある。ここで、ログインした利用者からのリクエストについて、その利用者が意図したリクエストであるかどうかを識別する
-        仕組みを持たないウェブサイトは、外部サイトを経由した悪意のあるリクエストを受け入れてしまう場合がある。
-        このようなウェブサイトにログインした利用者は、悪意のある人が用意した罠により、利用者が予期しない処理を実行させられて
-        しまう可能性がある。このような問題を「CSRF（Cross-Site Request Forgeriesの脆弱性」と呼び、これを悪用した攻撃を、
-        「CSRF攻撃」と呼ぶ。簡単な流れは以下
-        1 webサイトにログイン
-        2 webサイトがセッションIDを発行
-        3 ログイン状態を保持
-        4 悪意あるサイトのトラップページ等を閲覧しクリック等をする
-        5 利用者の意図しない攻撃リクエストをログイン保持状態のwebサイトに送信される
-        Djangoでは、デフォルトでCSRFの検証を行ってくれる。
-        settings.pyに記載されている'django.middleware.csrf.CsrfViewMiddleware'によってCSRF検証機能が設定される。
-        POSTメソッドのフォームには、csrf_tokenタグを入れればOK。-->
-        {% csrf_token %}
-        <!-- as_pは縦に表示させる -->
-        {{form.as_p}}
-        <!-- <input>タグはテキスト入力欄や実行ボタン等、 フォーム（<FORM>～</FORM>）を構成する部品を作成するタグ。
-        type属性の値により、一行テキストボックス・チェックボックス・ラジオボタン・実行ボタン・リセットボタン等の部品となる。 
-        type="submit"でフォームを送信するボタンが作られる。value="Submit"でそのボタンにSubmitの文字が表示される-->
-        <input type="submit" value="Submit" />
-    </form>
-</div>
+              <!-- labelはフォームの中でフォームの項目名と構成部品（チェックボックスなど）を関連付けるためのタグ。
+              関連付けを行うことにより、ブラウザでラベル（もしくはラベルのアクセスキー）をクリックした際に、
+              その構成部品をクリックしたのと同じ動作が可能になる。
+              <label>タグの指定方法は、<label>タグのfor属性の値と、フォーム部品のid属性の値を同じにすることで
+              両者の関連付けができる
+              ユーザーがフォーム入力する際にわかりやすく見せる事もできる
+               -->
+              <label for="room_topic">Enter a topic</label>
 
-{% endblock content %}
+              <!-- requiredでドロップで選択するか自身で名前を付け足さなければならなくなる 
+              
+              name="topic"により、そのinputタグの名前がtopicになる。サーバーへ送信したときにtopic= ~ のようにどの値が、
+              どの入力欄に対応しているのか分かるようになる。name属性が指定されていない場合、
+              フォームを送信してもその入力欄の値は送られません。-->
+              <input required type="text" value="{{room.topic.name}}" name="topic" list="topic-list" />
+
+              <!-- datalistはフォームの入力欄などで入力候補となるデータリストを定義する
+                   idはinputのlistと一致させることでそのinputに対する定義である事を表す
+                   各データのリスト項目は、<option>タグで定義 -->
+              <datalist id="topic-list">
+
+                <!-- <select> は、セレクトボックスを作成するためのタグ。
+                  ユーザーにプルダウンメニューの項目から選択させたい時に使う。
+                  それぞれの選択肢を記述するには <option> を用いる -->
+                <select id="room_topic">
+
+                  {% for topic in topics %}
+
+                  <!-- optionで指定した値が入力候補として提案表示される 
+                  フォームの部品としてデータが送信される際には、 <SELECT>タグのname属性で付けたデータ名と、
+                     選択された<OPTION>のvalue属性の値を一組にして、 <FORM>タグのaction属性で指定したサーバー上の
+                       ファイルに、 <FORM>タグのmethod属性で指定した転送方法で送られる。-->
+                  <option value="{{topic.name}}">{{topic.name}}</option>
+                  {% endfor %}
+                </select>
+              </datalist>
+            </div>
+
+            <div class="form__group">
+              <label for="room_name">Room Name</label>
+              <!-- formのモデルのフィールドからnameを選択 -->
+              {{form.name}}
+            </div>
+
+            <div class="form__group">
+              <label for="room_description">Room Description</label>
+              {{form.description}}
+            </div>
+            
+
+            <!-- <div class="form__group">
+              <label for="room_topic">Topic</label>
+              <input required type="text" name="topic" id="room_topic" list="topic-list" />
+              <datalist id="topic-list">
+                <select id="room_topic">
+                  <option value="">Select your topic</option>
+                  <option value="Python">Python</option>
+                  <option value="Django">Django</option>
+                </select>
+              </datalist>
+
+            </div> -->
+
+            
+            
+            <div class="form__action">
+              <a class="btn btn--dark" href="{% url 'home' %}">Cancel</a>
+              <button class="btn btn--main" type="submit">Submit</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+  {% endblock content %}

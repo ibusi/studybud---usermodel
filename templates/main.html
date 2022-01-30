@@ -1,41 +1,62 @@
 <!-- <htmからboiler templateを使うのが良い　-->
+    <!DOCTYPE html>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='utf-8'>
-    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <title>StudyBud</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
-    <script src='main.js'></script>
-</head>
-<body>
+    <!-- これでstaticタグが使えるようになる  -->
+    {% load static %}
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon" />
 
-    <!-- テンプレートをロードし、現在のコンテキストを使って出力する。
-    これはテンプレート内に他のテンプレートを取り込む（ “include” ）方法の一つ -->
-    {% include 'navbar.html' %}
+        <!-- <LINK>タグはその文書ファイルと関連する別の文書ファイルを指定し、 
+        その関係を定義するもので、<HEAD>～</HEAD>間で使用する。
+    属性
+    rel="リンクタイプ" …… この文書からみた別の文書との関係。指定文書がどのような意味を持つ文書であるかを明示するために指定
+    (stylesheetは外部スタイルシートを表す)
+    type="MIMEタイプ" …… 関連文書のMIMEタイプ。ブラウザが対応していない形式のデータを無駄に読み込ませないために指定する。
+    media="メディアタイプ" …… 関連文書が出力するメディアタイプ。デフォルトはscreen（一般的ディスプレイを表す）。
+    href="URI" …… 関連文書のURI 
 
-    <!--　if のカッコの内容が正の場合にその下に書いてあるコードが実行される 
+    href="{% static 'styles/style.css' %}"はstaticのstyles/style.cssを参照しろという命令 -->
+        <link rel="stylesheet" type='text/css' media='screen' href="{% static 'styles/style.css' %}" />
+        <title>StudyBuddy - Find study partners around the world!</title>
+      </head>
+    
+      <body>
+        
+        <!-- テンプレートをロードし、現在のコンテキストを使って出力する。
+        これはテンプレート内に他のテンプレートを取り込む（ “include” ）方法の一つ -->
+        {% include 'navbar.html' %}
+
+        <!--　if のカッコの内容が正の場合にその下に書いてあるコードが実行される 
         今回のでいえばメッセージが格納されているかどうかを確認し、正ならばその下のコードを実行する -->
-    {% if messages %}
-    <ul class="messages">
+        {% if messages %}
+        <ul class="messages">
+
         <!-- メッセージは配列で複数格納できる。そのため出力にはfor文で回して1メッセージずつ表示させる。 -->
         {% for message in messages %}
+        
             <!-- 任意で指定したメッセージ文は{{ message }} -->
             <li>{{ message }}</ul>
         {% endfor %}
-    </ul>
-    {% endif %}
-
-　  <!-- block を定義することで子テンプレートにオーバーライドさせることができる
-     ここで重要なのはextends タグ。このタグが、このテンプレートが他のテンプレートを "拡張" することを
-     テンプレートエンジンに伝える。テンプレートシステムがこの点プレートを評価する際に、
-     最初に親テンプレートを探しに行く。今回はhome.html やroom.html がextendsしている -->
-    {% block content %}
+        </ul>
+        {% endif %}
 
 
-    {% endblock %}
+        <!-- block を定義することで子テンプレートにオーバーライドさせることができる
+        ここで重要なのはextends タグ。このタグが、このテンプレートが他のテンプレートを "拡張" することを
+        テンプレートエンジンに伝える。テンプレートシステムがこの点プレートを評価する際に、
+        最初に親テンプレートを探しに行く。今回はhome.html やroom.html がextendsしている -->
+        {% block content %}
 
-</body>
-</html>
+
+        {% endblock %}
+        
+        <!--「SCRIPT」とはJavaScriptやVBScriptなどのスクリプトを文書内に埋め込んだり外部スクリプトを
+            読み込んだりするために使用するタグ -->
+        <script src="{% static 'js/script.js' %}"></script>
+      </body>
+    </html>
+    

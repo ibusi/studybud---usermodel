@@ -3,11 +3,9 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import UserCreationForm
-from .models import Room, Topic, Message
-from .forms import RoomForm
+from .models import Room, Topic, Message, User
+from .forms import RoomForm, UserForm, MyUserCreationForm
 
 
 # rooms =[
@@ -30,7 +28,7 @@ def loginPage(request):
         return redirect('home')
 
     if request.method == 'POST':
-        username = request.POST.get('username').lower()
+        email = request.POST.get('email').lower()
         password = request.POST.get('password')
 
         #from django.contrib.auth.models import UserからUserモデルをインポートすることでUserオブジェクトが使用できる
@@ -50,13 +48,13 @@ def loginPage(request):
             #usernameはUserモデルが持っているフィールドの一つ
             #上で宣言したUsername（ログインページで入力するUsename）と
             #フィールドのUsernameが一致しているかgetの（）内で条件をつけて一致するならエラーはない
-            user = User.objects.get(username=username)
+            user = User.objects.get(email=email)
         except:
             #from django.contrib import messagesからメッセージフレームワークをインポートしている
             messages.error(request, 'User doesnt exist')
         
         #authenticateはエラーを返すかマッチするユーザーのオブジェクトを返す
-        user = authenticate(request, username=username, password=password)            
+        user = authenticate(request, email=email, password=password)            
 
         if user is not None:
 
@@ -81,10 +79,10 @@ def logoutUser(request):
     return redirect('home')
 
 def registerPage(request):
-    form = UserCreationForm()
+    form = MyUserCreationForm()
 
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = MyUserCreationForm(request.POST)
         if form.is_valid():
             #save() メソッドはオプション commit キーワード引数を持っている。この引数には True または False を指定する。
             #save() をcommit=False で呼び出すと、データベースに保存する前のモデルオブジェクトを返す。
@@ -121,6 +119,7 @@ def home(request):
     #request.GETはdjangoで使われるメソッドでrequestは辞書型のデータではないので
     #requst.get(pythonで使われる辞書型のデータを取得するメソッド)でデータの取得はできないが
     #request.GETをつける事でrequestのデータを辞書型として扱い取得することができる
+
     #inline ifステイトメントは一行で記述するif文
     #条件式が真のときに評価される式か値 if 条件式 else 条件式が偽のときに評価される式か値
     #今回のを分かりやすくするともし if request.GET.get('q') != None だったら q = request.GET.get('q')
@@ -129,8 +128,8 @@ def home(request):
 
     #filterでは結果はオブジェクトのリストとして返される。 しかし、場合によってはひとつのオブジェクトだけが返ることを
     #期待する場合もある。 そのときはgetを利用する。
-    #topicは子のオブジェクトなのでtopic__nameとすることで親のclassのTopicの名前を指定することになる
-    #かつ↑で取得したqと一致したのを取得
+    #topic__name（Room→topic→name）でトピックのnameオブジェクトとqが一致するRoomを指定する。
+    #Room(Room→topic→name=q)と考えた方が分かりやすいかも。あくまでRoomを抽出してる。
     #部分一致（大文字小文字区別無し）させたい場合はicontainsを使う。
     #部分一致（大文字小文字区別有り）させたい場合はcontainsを使う。
     #Qで|(or)が使用できるようになる
@@ -140,71 +139,117 @@ def home(request):
         Q(description__icontains=q)
         )
 
-    topics = Topic.objects.all()
+    #[0:5]で最初の5つ分だけになる
+    topics = Topic.objects.all()[0:5]
 
     #countでアイテムの数を取得
     room_count = rooms.count()
+    room_messages = Message.objects.filter(Q(room__topic__name__icontains=q))
 
-    context = {'rooms': rooms, 'topics': topics, 'room_count': room_count}
+    context = {'rooms': rooms, 'topics': topics, 'room_count': room_count, 'room_messages': room_messages}
     return render(request, 'base/home.html', context)
 
 
-#pkはプライマリーキー(psrimary key)の略
+#pkはプライマリーキー(primary key)の略
 def room(request, pk):
 #    room = None
 #    for i in rooms:
 #        if i['id'] == int(pk):
 #            room = i
-#class.objects.getで指定したオブジェクトを取得する。（多対１）
+#class.objects.getで指定したオブジェクトが所属するclass取得する。
 #一つのインスタンスに対してデフォルトでidが作成される。1からインスタンスごとに増える。
 #getは他と被らないvalueを使ってシングルアイテムをゲットできる。IDは一つしかないので被る事はない。
-#かつid=pkでidとpkが一致しているか条件を指定している。（IDはデフォルトのプライマリーキーなので絶対一致する）
+#かつid=pkでidとpkが一致している条件を指定している。（IDはデフォルトのプライマリーキーなので絶対一致する）
     room = Room.objects.get(id=pk)
 
-    #インスタンス名.モデル名_set.all()で1対多の参照が可能（親から子）
+    #オブジェクト.モデル名_set.all()で1対多の参照が可能
     #今回のいえばメッセージ作成時はルームの指定も必須（ルームはメッセージの親だから）
     #そこでいくらか作成されているメッセージを全て参照している
 
     #ユーザーは、djangoに備えられたメソッドを使うことによって、モデルからデータを取り出すことができ、
     #その一連のデータがquerysetと呼ばれる。
     #order_by('hoge')とするとhogeの昇順でならんでいく
-    room_messages = room.message_set.all().order_by('-created')
+    #room_messages = room.message_set.all().order_by('-created')
+    room_messages = room.message_set.all()
+    participants = room.participants.all()
 
     if request.method == 'POST':
+
         #createは必要な条件を入力したらインスタンスを作成できる
         message = Message.objects.create(
             user=request.user,
             room=room,
+            
             #この'bodyはroom.htmlで作成した'body'
             body=request.POST.get('body')
         )
+        room.participants.add(request.user)
+
         #redirect先が'room'だけだとroomのどのパラメーターのurlの所に移動するのかわからずエラーになる
         #ので第二引数でパラメーターの指定をする
         #pk=room.idとしているが必ずもpk=としなければならないわけではない。room.idだけでもOK
         #redirectの第二引数は可変長引数（引数の数が決まっていない引数のこと。型が同じであれば任意の数設定することができる）
         return redirect('room', pk=room.id)
 
-    context = {'room': room, 'room_messages': room_messages}
+    context = {'room': room, 'room_messages': room_messages, 'participants': participants}
     return render(request, 'base/room.html', context)
 
+def userProfile(request, pk):
+    user = User.objects.get(id=pk)
+    rooms = user.room_set.all()
+    room_messages = user.message_set.all()
+    topics = Topic.objects.all()
+    context = {'user': user, 'rooms': rooms, 'room_messages': room_messages, 'topics': topics}
+    return render(request, 'base/profile.html', context)
+
+
+#デコレータは関数やクラスの前後に特定の処理を追加できる機能。
+# 関数やクラス宣言の前に@デコレータ名を記述することで実現できる。
 #login_requiredはsession idがあるかどうかを確認しなかったら指定のURLに移動させる
 @login_required(login_url='login')
 def createRoom(request):
     form = RoomForm()
+    topics = Topic.objects.all()
     
     #room_form.htmlで指定したformのmethod
     if request.method == 'POST':
+
+        #この'topic'はroom_form.htmlのinputのname="topic"で指定したtopic
+        topic_name = request.POST.get('topic')
+
+        #djangoのget_or_createは、DBからレコードを取得したりレコードを挿入したりすることができる。
+        #オブジェクトが存在しない場合は、DBにオブジェクトを登録して登録した値を返し、オブジェクトが存在する場合は、
+        #DBにオブジェクトを登録せずに値を返す。以下のように利用する。
+        #result, created = Model.objects.get_or_create(**kwargs)kwargsには、挿入したいレコードの値を指定する。
+        #DBに新たにレコードを挿入しなかった場合には、createdにはFalseが返され、
+        #resultには指定したModelのオブジェクトが返される。
+        #DBに新たにレコードを挿入した場合には、 createdにはTrueが返され、
+        #resultには挿入されたModelのオブジェクトが返される。
+        topic, created = Topic.objects.get_or_create(name=topic_name)
+
+        Room.objects.create(
+            host=request.user,
+            topic=topic,
+            name=request.POST.get('name'),
+            description=request.POST.get('description')
+        )
+
         #request.postで全てのPOSTのデータをformに送る
-        form = RoomForm(request.POST)
+        # form = RoomForm(request.POST)
+
         #is_validは、フォームに入力された値にエラーがないかをバリデートするメソッド。
         #例えば、IntegerFieldの項目に数値以外のものが入った場合や、必須の項目が空欄だった場合にエラーとなる。
-        if form.is_valid():
-            #saveはデータベースにセーブする
-            form.save()
-            #redirectでしてしたページにユーザーを送る。今回はホーム（urls.pyで名前指定してる）
-            return redirect('home')
+        # if form.is_valid():
 
-    context ={'form': form}
+            #saveはデータベースにセーブする
+            # room = form.save(commit=False)
+            # room.host = request.user
+            # room.save()
+
+            #redirectでしてしたページにユーザーを送る。今回はホーム（urls.pyで名前指定してる）
+        return redirect('home')
+
+    context ={'form': form, 'topics': topics}
     return render(request, 'base/room_form.html', context)
 
 @login_required(login_url='login')
@@ -220,6 +265,8 @@ def updateRoom(request, pk):
 
     #インスタンスに情報を入れることでフォームにあらかじめ記述された状態ができる
     form = RoomForm(instance=room)
+
+    topics = Topic.objects.all()
 
     #ルーム作成者とアップデートしようとしているユーザーが同じか確認
     if request.user != room.host:
@@ -240,6 +287,9 @@ def updateRoom(request, pk):
     #サブミットが押されたことでリクエストが発生、それがPOSTか確認
     if request.method == 'POST':
 
+        topic_name = request.POST.get('topic')
+        topic, created = Topic.objects.get_or_create(name=topic_name)
+
         #POST方式であればrequest.POSTとすることでrequestからデータを辞書型で取得できる。
         #（request.POST["id"]等にして指定したものを取得することもできる。（今回は指定せずに全データ））
         #instance=roomとすることでIDが同じページに情報が上書きされる
@@ -247,13 +297,17 @@ def updateRoom(request, pk):
         #このメソッドは、フォームに結びつけられたデータから、モデルオブジェクトを生成してデータベースに保存する。
         #ModelForm のサブクラスは既存のモデルイ ンスタンスをキーワード引数 instance にしてインスタンス化できる。
         #instance を指定してモデルフォームを生成すると、モデルフォームの save() はこのインスタンスを更新して保存する。
-        #instance を指定しな ければ、 save() はモデルフォームで指定しているモデルの新たなインスタン スを生成します
-        form = RoomForm(request.POST, instance=room)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
+        #instance を指定しな ければ、 save() はモデルフォームで指定しているモデルの新たなインスタン スを生成する
+        # form = RoomForm(request.POST, instance=room)
+        # if form.is_valid():
+        #     form.save()
+        room.name = request.POST.get('name')
+        room.topic = topic
+        room.description = request.POST.get('description')
+        room.save()
+        return redirect('home')
 
-    context = {'form': form}
+    context = {'form': form, 'topics': topics, 'room': room}
     return render(request, 'base/room_form.html', context)
 
 @login_required(login_url='login')
@@ -267,3 +321,36 @@ def deleteRoom(request, pk):
         room.delete()
         return redirect('home')
     return render(request, 'base/delete.html', {'obj':room})
+
+@login_required(login_url='login')
+def deleteMessage(request, pk):
+    message = Message.objects.get(id=pk)
+
+    if request.user != message.user:
+        return HttpResponse('You are not allowed here‼')
+
+    if request.method =='POST':
+        message.delete()
+        return redirect('home')
+    return render(request, 'base/delete.html', {'obj':message})
+
+@login_required(login_url='login')
+def updateUser(request):
+    user = request.user
+    form = UserForm(instance=user)
+
+    if request.method == 'POST':
+        form = UserForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('user-profile', pk=user.id)
+    return render(request, 'base/update-user.html', {'form': form})
+
+def topicsPage(request):
+    q = request.GET.get('q') if request.GET.get('q') != None else ''
+    topics = Topic.objects.filter(name__icontains=q)
+    return render(request, 'base/topics.html', {'topics': topics})
+    
+def activityPage(request):
+    room_messages = Message.objects.all()
+    return render(request, 'base/activity.html', {'room_messages': room_messages})
